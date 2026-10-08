@@ -1,29 +1,29 @@
 const fs = require('fs');
 
 async function fetchDeshabhimaniData() {
-    const url = 'https://www.deshabhimani.com/';
-    try {
-        console.log('Fetching data from Deshabhimani...');
-        
-        // ബ്രൗസറിൽ നിന്നാണെന്ന് തോന്നിപ്പിക്കാനുള്ള headers ഉൾപ്പെടുത്തുന്നു
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5'
-            }
-        });
+    // നേരിട്ടുള്ള URL-ന് പകരം Proxy സർവീസ് വഴി കൊടുക്കുന്നു
+    const targetUrl = encodeURIComponent('https://www.deshabhimani.com/');
+    const proxyUrl = `https://api.allorigins.win/get?url=${targetUrl}`;
 
+    try {
+        console.log('Fetching data from Deshabhimani via Proxy...');
+        
+        const response = await fetch(proxyUrl);
+        
         if (!response.ok) {
-            console.error('Website blocked the request or failed. Status:', response.status);
+            console.error('Failed to fetch from proxy. Status:', response.status);
+            return;
         }
 
-        const htmlContent = await response.text();
+        const jsonResponse = await response.json();
+        
+        // Proxy നൽകുന്ന ഡാറ്റയിൽ നിന്നും യഥാർത്ഥ HTML വേർതിരിച്ചെടുക്കുന്നു
+        const htmlContent = jsonResponse.contents;
 
-        if (htmlContent.trim() === '') {
-            console.log('Warning: Website returned an empty page.');
+        if (!htmlContent || htmlContent.trim() === '') {
+            console.log('Warning: Website returned an empty page even with proxy.');
         } else {
-            console.log('Success: Downloaded ' + htmlContent.length + ' bytes of data.');
+            console.log('Success: Downloaded ' + htmlContent.length + ' bytes of HTML data.');
         }
 
         fs.writeFileSync('deshabhimani_data.html', htmlContent);
