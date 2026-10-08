@@ -1,10 +1,12 @@
 {
-  "name": "all-market-tracker",
+  "name": "newspaper-scraper",
   "version": "1.0.0",
-  "description": "Scrapes HTML data",
-  "main": "index.js",
+  "description": "Scrapes HTML data using Puppeteer",
+  "main": "deshabhimani.js",
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  },
   "scripts": {
-    "start": "node index.js",
     "scrape-desha": "node deshabhimani.js"
   }
 }
