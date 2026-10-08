@@ -1,36 +1,28 @@
 const fs = require('fs');
+const puppeteer = require('puppeteer');
 
 async function fetchDeshabhimaniData() {
-    // നേരിട്ടുള്ള URL-ന് പകരം Proxy സർവീസ് വഴി കൊടുക്കുന്നു
-    const targetUrl = encodeURIComponent('https://www.deshabhimani.com/');
-    const proxyUrl = `https://api.allorigins.win/get?url=${targetUrl}`;
-
+    console.log('Launching Headless Chrome Browser...');
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    
     try {
-        console.log('Fetching data from Deshabhimani via Proxy...');
+        // ഒറിജിനൽ ബ്രൗസർ ആണെന്ന് സൈറ്റിനെ തോന്നിപ്പിക്കാൻ
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        const response = await fetch(proxyUrl);
+        console.log('Navigating to Deshabhimani...');
+        await page.goto('https://www.deshabhimani.com/', { waitUntil: 'domcontentloaded', timeout: 60000 });
         
-        if (!response.ok) {
-            console.error('Failed to fetch from proxy. Status:', response.status);
-            return;
-        }
-
-        const jsonResponse = await response.json();
+        // ബ്രൗസറിൽ ലോഡ് ആയ യഥാർത്ഥ HTML ഡാറ്റ എടുക്കുന്നു
+        const htmlContent = await page.content();
         
-        // Proxy നൽകുന്ന ഡാറ്റയിൽ നിന്നും യഥാർത്ഥ HTML വേർതിരിച്ചെടുക്കുന്നു
-        const htmlContent = jsonResponse.contents;
-
-        if (!htmlContent || htmlContent.trim() === '') {
-            console.log('Warning: Website returned an empty page even with proxy.');
-        } else {
-            console.log('Success: Downloaded ' + htmlContent.length + ' bytes of HTML data.');
-        }
-
         fs.writeFileSync('deshabhimani_data.html', htmlContent);
-        console.log('HTML file successfully saved as deshabhimani_data.html');
+        console.log('Success! Saved ' + htmlContent.length + ' bytes of data.');
         
     } catch (error) {
         console.error('Error fetching the website:', error);
+    } finally {
+        await browser.close();
     }
 }
 
